@@ -27,6 +27,9 @@ Written by Victoria Torres and Manuel Rydholm.
 double xpos = 0; //this is the left-most point of the bird
 double ypos = 20; //this is the top-most point of the bird
 
+double xposp = 100; // same as above^ but for pipe
+double yposp = 20; 
+
 uint8_t screen[128*4] = {0}; //Display
 
 //variables for keeping track of the score
@@ -42,15 +45,14 @@ int check_high_score = 0;
 int enemies[NOFENEMY][2] = {0};
 
 //Converts x and y coordinates so it easier to draw on the screen
-//SHOULD WE MAKE THE SCREEN A CONST??????
 void add_pixel(int x, int y, uint8_t *array){
 //This prevents the addition of pixels out of bounds
     if(x <= 0 || x >= SCREEN_WIDTH || y <= 0 || y >= SCREEN_HEIGHT)
         return;
-    
+
 //Defines in which page the pixel should go. 0 < y < 32 because of screen.
     int page= y / 8;
-    
+
 //page * 128 gives the page. Plus x gives the index inside that page. Same for y coordinate.
     array[page * 128 + x] |= (1 << (y - page * 8));
 }
@@ -71,12 +73,25 @@ void draw_enemy(int x, int y) {
     for(i = 0; i < ENEMYH; i++) {
         for(j = 0; j < ENEMYW; j++) {
             add_pixel(x + j, y + i, screen);
+
         }
     }
 }
 
+
+
+//draws a pipe at a set position 3 AND 10 are just constants for a fixed pipe
+void draw_pipe() {
+   int i,j;
+   for (i=0; i < 10; i++) {
+      for (j = 0; j < 3; j++) {
+          add_pixel((int) xposp + j,(int) yposp + i, screen);
+    }
+  }
+}
+
 //adds the enemies created to the global array for enemies. Parameters are the x and y coordinates plus the number of the enemy which acts as its identification
-void addEnemy(int x, int y, int num) {
+void addEnemy(int num, int x, int y) {
     enemies[num][0] = x;
     enemies[num][1] = y;
 }
@@ -92,12 +107,12 @@ void clear() {
 
 
 
-//this function allows the enemies to move to the left and down
+//this function allows the enemies to move to the left and down by changing the value of x and y by speed
 void move_enemy(int xspeed,int yspeed) {
     int i;
     for(i = 0; i < NOFENEMY; i++) {
         enemies[i][0] = enemies[i][0] - xspeed;
-        enemies[i][1] = enemies[i][1] - yspeed;
+        enemies[i][1] = enemies[i][1] + yspeed;
     }
 }
 
@@ -125,7 +140,7 @@ volatile int getbtn(int btn) {
     return value;
 }
 
-//Checks which switch was toggled: change speed
+//Checks which switch was toggled: 1,2,3 change speed. 4 to start the game
 volatile int getsw(int sw) {
     int value = 0;
     switch (sw) {
@@ -157,9 +172,12 @@ void move_bird () {
             xpos -= 0.25;
     }
     //to move the bird up
-    if(getbtn(3)) {
-        if(ypos <= (31-BIRDH))
+    if(getbtn(3)) {     //FIX SO THE BIRD DOESNT LEAVE THE SCREEN
+        if(ypos >= 0)
             ypos -= 0.25;
+		
+		const int randomSeed = //RANDOM SEED. Gets defined when user presses up btn
+		
     }
     //to move bird to the right
     if(getbtn(2)) {
@@ -179,7 +197,7 @@ int collisions() {
     int bird_bottom = ypos + BIRDH;
     int bird_left = xpos;
     int bird_right = xpos + BIRDW;
-    
+
     for(i = 0; i < NOFENEMY; i++) {
         int enemy_top = enemies[i][1];
         int enemy_bottom = enemy_top + ENEMYH;
@@ -282,7 +300,9 @@ char * itoaconv( int num )
 
 
 
-////Game's main loop
+
+
+//Game's main loop
 void play() {
     score = 0; //resets the score
 
@@ -291,7 +311,7 @@ void play() {
     int periodcounter = 0;
     int timeoutcounter = 0;
     int scoreperiod = 0;
-    
+
 //variables needed for the enemies to move
 //WE HAVE TO DO SOMETHING WITH THE SWITCHES HERE
     int xspeed = 1;
@@ -300,17 +320,37 @@ void play() {
 //    fillenemies();
 
 int playing = 1; //boolean to known when you are playing or not
-    
+
     while(playing) {
- 
+
 //movement of bird, clear necessary so moves works properly
         move_bird();
+        move_enemy(xspeed,yspeed);
         clear();
 
 //Do stuff with IFS here, timeout, period, scoreperiod, timeout==period move enemy and reset the timeout stuff like that
-
-
+       // if(IFS(0))
+		   // https://i.gyazo.com/1f8f50bea099f1b70eef51e3c39463a7.png <---- IFS0 BITS
+		
+		//////////////GRAVITY//////////////////
+		if (IFS(0) & 0x1000) { 
+			if (ypos >= 0) {
+            ypos += 0.25;
+			}
+		IFSCLR(0) = 0x1000; //reset
+		}
+		
+		////////////  <--- PIPE  ////////////
+		if (IFS(0) & 0x10000) {
+			if(xposp >= 0) {
+				xposp -= 0.25;
+			}
+		IFSCLR(0) = 0x10000; //reset
+		}
+		
         draw_enemy(32,2);
+        //add_enemy (0,32,2);
+		draw_pipe();
         draw_bird();
         render(screen);
         playing = !collisions(); //This is the way to stop the playing
@@ -325,19 +365,19 @@ void game_over() {
     if(score < score1 && score > score2) {
         score2 = score;
     }
-    
+
     //checks if the score should replace the highest score
     if(score > score1) {
         score2 = score1;
         score1 = score;
     }
-   
+
     int gameover = 1; // boolean for game over
-    
+
     //reset the position of the bird to initial position
     xpos = 0;
     ypos = 0;
-    
+
 //what you would see on your screen
     display_string(0, "WASTED!");
     display_string(1, "your score:");
@@ -355,14 +395,14 @@ void game_over() {
 
 void high_score() {
   //check what to do with the text buffer
-    
-    
-    display_string(0, "--HIGH SCORES--");
+
+
+  //  display_string(0, );
 //    display_string(2, ); //find a way to put the highest score here
 //    display_string(1, ); //find a way to put the second highest score here
-    display_string(3, "Start: BTN1");
+    display_string(3, "Menu: BTN1");
     display_update();
-    
+
     while(1) {
         if(getbtn(1)) {
             break;

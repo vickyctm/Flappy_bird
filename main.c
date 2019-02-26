@@ -10,7 +10,9 @@ uint8_t screen[128*4];
 int main(void) {
 	configbtn();
 	configscreen();
-	configtimer();
+	configtimer2();
+	configtimer3();
+	configtimer4();
 	display_init();
 	render(screen);
 	PORTE = 1;

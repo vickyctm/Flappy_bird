@@ -6,7 +6,9 @@ Written by Victoria Torres and Manuel Rydholm
 //all configurations needed
 void configbtn(void);
 void configscreen(void);
-void configtimer(void);
+void configtimer1(void);
+void configtimer2(void);
+void configtimer3(void);
 void user_isr(void);
 
 //all display related functions
