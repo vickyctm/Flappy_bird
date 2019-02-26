@@ -24,11 +24,11 @@ Written by Victoria Torres and Manuel Rydholm.
 #define NOFENEMY 5
 
 //Coordinates for the bird. Global variables
-double xpos = 0; //this is the left-most point of the bird
-double ypos = 20; //this is the top-most point of the bird
+double xpos = 100; //this is the left-most point of the bird
+double ypos = 30; //this is the top-most point of the bird
 
 double xposp = 100; // same as above^ but for pipe
-double yposp = 20; 
+double yposp = 20;
 
 uint8_t screen[128*4] = {0}; //Display
 
@@ -173,12 +173,11 @@ void move_bird () {
     }
     //to move the bird up
     if(getbtn(3)) {     //FIX SO THE BIRD DOESNT LEAVE THE SCREEN
+      //static const int randomSeed = (TMR4 & 0x1) ; //RANDOM SEED 0-9. Gets defined when user presses up btn
         if(ypos >= 0)
             ypos -= 0.25;
-		
-		const int randomSeed = //RANDOM SEED. Gets defined when user presses up btn
-		
     }
+
     //to move bird to the right
     if(getbtn(2)) {
         if(xpos <= (127-BIRDW))
@@ -192,25 +191,40 @@ void move_bird () {
 int collisions() {
     int i;
 
+//borders for the screen
+  int screen_top= 0;
+  int screen_bottom= SCREEN_HEIGHT;
+  int screen_left=0;
+  int screen_right= SCREEN_WIDTH;
+
 //borders for the bird
     int bird_top = ypos;
     int bird_bottom = ypos + BIRDH;
     int bird_left = xpos;
     int bird_right = xpos + BIRDW;
 
-    for(i = 0; i < NOFENEMY; i++) {
-        int enemy_top = enemies[i][1];
-        int enemy_bottom = enemy_top + ENEMYH;
-        int enemy_left = enemies[i][0];
-        int enemy_right = enemy_left + ENEMYW;
-
-        if ( bird_top == enemy_bottom &&
-             bird_bottom == enemy_top &&
-             bird_right == enemy_left &&
-             bird_left == enemy_right) {
-            return 1;
-        }
+//collisions with the screen borders
+    if ( bird_top==screen_top ||
+         bird_bottom==screen_bottom ||
+         bird_right==screen_right ||
+         bird_left==screen_left) {
+      return 1;
     }
+
+
+    // for(i = 0; i < NOFENEMY; i++) {
+    //     int enemy_top = enemies[i][1];
+    //     int enemy_bottom = enemy_top + ENEMYH;
+    //     int enemy_left = enemies[i][0];
+    //     int enemy_right = enemy_left + ENEMYW;
+    //
+    //     if ( bird_top == enemy_bottom &&
+    //          bird_bottom == enemy_top &&
+    //          bird_right == enemy_left &&
+    //          bird_left == enemy_right) {
+    //         return 1;
+    //     }
+    // }
 
     return 0;
 }
@@ -331,15 +345,15 @@ int playing = 1; //boolean to known when you are playing or not
 //Do stuff with IFS here, timeout, period, scoreperiod, timeout==period move enemy and reset the timeout stuff like that
        // if(IFS(0))
 		   // https://i.gyazo.com/1f8f50bea099f1b70eef51e3c39463a7.png <---- IFS0 BITS
-		
+
 		//////////////GRAVITY//////////////////
-		if (IFS(0) & 0x1000) { 
+		if (IFS(0) & 0x1000) {
 			if (ypos >= 0) {
             ypos += 0.25;
 			}
 		IFSCLR(0) = 0x1000; //reset
 		}
-		
+
 		////////////  <--- PIPE  ////////////
 		if (IFS(0) & 0x10000) {
 			if(xposp >= 0) {
@@ -347,7 +361,7 @@ int playing = 1; //boolean to known when you are playing or not
 			}
 		IFSCLR(0) = 0x10000; //reset
 		}
-		
+
         draw_enemy(32,2);
         //add_enemy (0,32,2);
 		draw_pipe();
@@ -380,9 +394,9 @@ void game_over() {
 
 //what you would see on your screen
     display_string(0, "WASTED!");
-    display_string(1, "your score:");
+    display_string(1, "score:");
 //    display_string(2, ); //find a way to display the score here
-    display_string(3, "BTN1 to go to menu");
+    display_string(3, "BTN1 menu");
     display_update();
 
 //goes back to the menu if btn 1 is pressed
