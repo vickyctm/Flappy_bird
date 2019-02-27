@@ -106,6 +106,17 @@ void display_string(int line, char *s) {
 			textbuffer[line][i] = ' ';
 }
 
+void clear_text() {
+    int i, j;
+
+    for (i = 0; i < 4; i++){
+  	     for(j = 0; j < 16; j++){
+		   textbuffer[i][j] = 0;
+	       }
+    }	
+}
+
+
 void render(uint8_t *arr) {
     int i, j;
 

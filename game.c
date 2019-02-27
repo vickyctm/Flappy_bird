@@ -10,25 +10,30 @@ Written by Victoria Torres and Manuel Rydholm.
 #define SCREEN_HEIGHT 32
 #define SCREEN_WIDTH 128
 //Height and width of the bird
-#define BIRDH 10
+#define BIRDH 4
 #define BIRDW 7
-//Height and width of the pipes
-#define PIPEH 14
+//Width of the pipes
 #define PIPEW 7
-//Number of pipes
-#define NROFPIPS 5
 //Height and width of the enemies
 #define ENEMYH 3
 #define ENEMYW 3
-//Number of enemies
-#define NOFENEMY 5
+
+//variables needed for random function
+int randomSeed;
+int finalRandomSeed = 0;
+int randomSetterVarPipe;
+int randomSetterVarEnemy;
+//int randomSetterVar;
 
 //Coordinates for the bird. Global variables
-double xpos = 100; //this is the left-most point of the bird
-double ypos = 30; //this is the top-most point of the bird
+double xpos = 0; //this is the left-most point of the bird
+double ypos = 2; //this is the top-most point of the bird
 
 double xposp = 100; // same as above^ but for pipe
 double yposp = 20;
+
+double xpose=120; //same as above^bur for enemy
+double ypose=1;
 
 uint8_t screen[128*4] = {0}; //Display
 
@@ -37,12 +42,10 @@ int score = 0; //score counter
 //Top highest scores
 int score1 = 0;
 int score2 = 0;
+int score3 = 0;
 
 //boolean variable that would be use to acces highest scores from the menu
-int check_high_score = 0;
-
-//creates a two dimensional array: first dimension is to count each of the enemies and second has two cells: [][0] for x coordinate and [][1] for y coordinate of each of the enemies
-int enemies[NOFENEMY][2] = {0};
+int high_score_screen = 0;
 
 //Converts x and y coordinates so it easier to draw on the screen
 void add_pixel(int x, int y, uint8_t *array){
@@ -53,7 +56,7 @@ void add_pixel(int x, int y, uint8_t *array){
 //Defines in which page the pixel should go. 0 < y < 32 because of screen.
     int page= y / 8;
 
-//page * 128 gives the page. Plus x gives the index inside that page. Same for y coordinate.
+//page * 128 gives the page. Plus x gives the index inside that page. y position in the page.
     array[page * 128 + x] |= (1 << (y - page * 8));
 }
 
@@ -66,56 +69,6 @@ void draw_bird() {
         }
     }
 }
-
-//draw an enemy at a set position
-void draw_enemy(int x, int y) {
-    int i,j;
-    for(i = 0; i < ENEMYH; i++) {
-        for(j = 0; j < ENEMYW; j++) {
-            add_pixel(x + j, y + i, screen);
-
-        }
-    }
-}
-
-
-
-//draws a pipe at a set position 3 AND 10 are just constants for a fixed pipe
-void draw_pipe() {
-   int i,j;
-   for (i=0; i < 10; i++) {
-      for (j = 0; j < 3; j++) {
-          add_pixel((int) xposp + j,(int) yposp + i, screen);
-    }
-  }
-}
-
-//adds the enemies created to the global array for enemies. Parameters are the x and y coordinates plus the number of the enemy which acts as its identification
-void addEnemy(int num, int x, int y) {
-    enemies[num][0] = x;
-    enemies[num][1] = y;
-}
-
-
-//Set every byte to 0 in order to clear the screen so the bird, pipes, and enemies can move properly
-void clear() {
-    int i;
-    for(i = 0; i < sizeof(screen); i++) {
-        screen[i] = 0;
-    }
-}
-
-
-
-//this function allows the enemies to move to the left and down by changing the value of x and y by speed
-void move_enemy(int xspeed,int yspeed) {
-    int i;
-    for(i = 0; i < NOFENEMY; i++) {
-        enemies[i][0] = enemies[i][0] - xspeed;
-        enemies[i][1] = enemies[i][1] + yspeed;
-    }
-}
-
 
 
 //Checks which button was pressed: for movement of bird, and navegation through the menus
@@ -139,6 +92,126 @@ volatile int getbtn(int btn) {
     }
     return value;
 }
+
+//Copies the current value of TMR4 whenever btn3 is pressed
+int randGenerator() {
+  if (getbtn(3)) {
+    int randTemp = TMR4; //RANDOM SEED 0-9. Gets defined when user presses up btn 3
+    randomSeed = randTemp;
+  }
+  return randomSeed;
+}
+
+//moves the bird
+void move_bird () {
+    //to move bird to the left
+    if(getbtn(4)) {
+        if(xpos >= 0)
+            xpos -= 0.25;
+    }
+    //to move the bird up
+    if(getbtn(3)) {     //FIX SO THE BIRD DOESNT LEAVE THE SCREEN
+      //int randTemp = TMR4; //RANDOM SEED 0-9. Gets defined when user presses up btn
+      //  randomSeed = randTemp;
+      //randomSeed = TMR4;
+        if(ypos >= 0)
+            ypos -= 0.25;
+    }
+
+    //to move bird to the right
+    if(getbtn(2)) {
+        if(xpos <= (127-BIRDW))
+            xpos += 0.25;
+    }
+}
+
+//THIS FUNCTION INCLUDES CODE FROM https://www.sanfoundry.com/c-program-binary-number-into-decimal/
+// WHICH IS USED TO CONVERT A BINARY NUMBER OBTAINED FROM randGenerator() TO DECIMAL AND STORE IT IN finalRandomSeed
+void random_seed_generator() {
+    int decimal_randomSeed = 0;
+    int base = 1;
+    int rem;
+    int seed = randGenerator();
+
+    while (seed > 0)
+      {
+          rem = seed % 10;
+          decimal_randomSeed = decimal_randomSeed + rem * base;
+          seed = seed / 10 ;
+          base = base * 2;
+        }
+
+        finalRandomSeed = (decimal_randomSeed % 10); //value from 0 to 9
+      }
+
+
+//Obtains the value from random_seed_generator and stores it to feed it to draw_pipe once
+//the pipe has left the screen. This results in a randomization of the height of the pipe
+int randomSetterPipe() {
+  if (xposp == 127) {
+    randomSetterVarPipe = finalRandomSeed;
+  }
+  return randomSetterVarPipe;
+}
+
+int randomSetterEnemy() {
+  if (ypose == 31) {
+    randomSetterVarEnemy = finalRandomSeed;
+  }
+  return randomSetterVarEnemy;
+}
+
+void draw_pipe() {
+  int localtemp;
+  if (xposp == 0) {
+    xposp = 127;
+    //random_seed_generator();
+  }
+   int i,j;
+   random_seed_generator();
+   localtemp = randomSetterPipe();
+    yposp = ( (2 * localtemp) + 12 ); //height at which pipe gets drawn
+    for (i=0; i < (31-yposp); i++) {
+      for (j = 0; j < PIPEW; j++) {
+          add_pixel((int) xposp + j,(int) yposp + i, screen);
+    }
+  }
+}
+
+
+
+void draw_enemy() {
+  int localtemp;
+//checks if the enemy has touched the end of the screen and resets it to the initial position
+  if (ypose == (31-ENEMYH)) {
+    random_seed_generator();
+    localtemp = randomSetterPipe();
+    //xpose = 127;
+    xpose = 65 + (5 * localtemp);
+    ypose = 1;
+  }
+    int i,j;
+    random_seed_generator();
+    localtemp = randomSetterPipe();
+    xpose = 65 + (5 * localtemp);
+    for(i = 0; i < ENEMYH; i++) {
+        for(j = 0; j < ENEMYW; j++) {
+            add_pixel(xpose + j, ypose + i, screen);
+        }
+    }
+}
+
+
+
+//Set every byte to 0 in order to clear the screen so movement works properly
+void clear() {
+    int i;
+    for(i = 0; i < sizeof(screen); i++) {
+        screen[i] = 0;
+    }
+}
+
+
 
 //Checks which switch was toggled: 1,2,3 change speed. 4 to start the game
 volatile int getsw(int sw) {
@@ -164,38 +237,14 @@ volatile int getsw(int sw) {
 
 
 
-//moves the bird
-void move_bird () {
-    //to move bird to the left
-    if(getbtn(4)) {
-        if(xpos >= 0)
-            xpos -= 0.25;
-    }
-    //to move the bird up
-    if(getbtn(3)) {     //FIX SO THE BIRD DOESNT LEAVE THE SCREEN
-      //static const int randomSeed = (TMR4 & 0x1) ; //RANDOM SEED 0-9. Gets defined when user presses up btn
-        if(ypos >= 0)
-            ypos -= 0.25;
-    }
-
-    //to move bird to the right
-    if(getbtn(2)) {
-        if(xpos <= (127-BIRDW))
-            xpos += 0.25;
-    }
-}
-
-
-
-//checks if the bird has collided with: a pipe, a enemy, the borders of the display
+//checks if the bird has collided with: a pipe, an enemy, or the borders of the display
 int collisions() {
     int i;
 
 //borders for the screen
-  int screen_top= 0;
-  int screen_bottom= SCREEN_HEIGHT;
-  int screen_left=0;
-  int screen_right= SCREEN_WIDTH;
+  int screen_top = 0;
+  int screen_bottom = SCREEN_HEIGHT;
+  int screen_left = 0;
 
 //borders for the bird
     int bird_top = ypos;
@@ -203,80 +252,49 @@ int collisions() {
     int bird_left = xpos;
     int bird_right = xpos + BIRDW;
 
+//borders for the pipes
+    int pipe_top = yposp;
+    int pipe_left = xposp;
+    int pipe_right = xposp + PIPEW;
+
+//borders for the enemies
+    int enemy_top = ypose;
+    int enemy_bottom = ypose + ENEMYH;
+    int enemy_left = xpose;
+    int enemy_right = xpose + ENEMYW;
+
 //collisions with the screen borders
-    if ( bird_top==screen_top ||
-         bird_bottom==screen_bottom ||
-         bird_right==screen_right ||
-         bird_left==screen_left) {
+    if ( bird_top == screen_top ||
+         bird_bottom == screen_bottom ||
+         bird_left == screen_left) {
       return 1;
     }
 
+//collisions with the pipes. no bird top needed.
+    else if ( bird_bottom == pipe_top ||
+              bird_right == pipe_left ||
+              bird_left == pipe_right) {
+      return 1;
+    }
 
-    // for(i = 0; i < NOFENEMY; i++) {
-    //     int enemy_top = enemies[i][1];
-    //     int enemy_bottom = enemy_top + ENEMYH;
-    //     int enemy_left = enemies[i][0];
-    //     int enemy_right = enemy_left + ENEMYW;
-    //
-    //     if ( bird_top == enemy_bottom &&
-    //          bird_bottom == enemy_top &&
-    //          bird_right == enemy_left &&
-    //          bird_left == enemy_right) {
-    //         return 1;
-    //     }
-    // }
+//collisions with the enemies
+    else if ( bird_top == enemy_bottom ||
+              bird_bottom == enemy_top ||
+              bird_right == enemy_left ||
+              bird_left == enemy_right) {
+      return 1;
+    }
 
+ else
     return 0;
 }
 
-///*
-// * itoa
-// *
 // * Simple conversion routine
 // * Converts binary to decimal numbers
 // * Returns pointer to (static) char array
-// *
-// * The integer argument is converted to a string
-// * of digits representing the integer in decimal format.
-// * The integer is considered signed, and a minus-sign
-// * precedes the string of digits if the number is
-// * negative.
-// *
-// * This routine will return a varying number of digits, from
-// * one digit (for integers in the range 0 through 9) and up to
-// * 10 digits and a leading minus-sign (for the largest negative
-// * 32-bit integers).
-// *
-// * If the integer has the special value
-// * 100000...0 (that's 31 zeros), the number cannot be
-// * negated. We check for this, and treat this as a special case.
-// * If the integer has any other value, the sign is saved separately.
-// *
-// * If the integer is negative, it is then converted to
-// * its positive counterpart. We then use the positive
-// * absolute value for conversion.
-// *
-// * Conversion produces the least-significant digits first,
-// * which is the reverse of the order in which we wish to
-// * print the digits. We therefore store all digits in a buffer,
-// * in ASCII form.
-// *
-// * To avoid a separate step for reversing the contents of the buffer,
-// * the buffer is initialized with an end-of-string marker at the
-// * very end of the buffer. The digits produced by conversion are then
-// * stored right-to-left in the buffer: starting with the position
-// * immediately before the end-of-string marker and proceeding towards
-// * the beginning of the buffer.
-// *
-// * For this to work, the buffer size must of course be big enough
-// * to hold the decimal representation of the largest possible integer,
-// * and the minus sign, and the trailing end-of-string marker.
-// * The value 24 for ITOA_BUFSIZ was selected to allow conversion of
-// * 64-bit quantities; however, the size of an int on your current compiler
-// * may not allow this straight away.
-// */
+//This function was taken from mipslabfunction written 2015 by F Lundevall. This is used for the score.
 #define ITOA_BUFSIZ ( 24 )
-char * itoaconv( int num )
+char* itoaconv( int num )
 {
   register int i, sign;
   static char itoa_buffer[ ITOA_BUFSIZ ];
@@ -310,64 +328,60 @@ char * itoaconv( int num )
   return( &itoa_buffer[ i + 1 ] );
 }
 
-//some type of string concatination to store the scores needed
-
-
-
 
 
 //Game's main loop
 void play() {
+//variables needed for the score
     score = 0; //resets the score
-
-//variables needed to set up the clock
-    int period = 15;
-    int periodcounter = 0;
-    int timeoutcounter = 0;
-    int scoreperiod = 0;
-
-//variables needed for the enemies to move
-//WE HAVE TO DO SOMETHING WITH THE SWITCHES HERE
-    int xspeed = 1;
-    int yspeed = 1;
-
-//    fillenemies();
+    int speriod = 0;
 
 int playing = 1; //boolean to known when you are playing or not
-
     while(playing) {
-
 //movement of bird, clear necessary so moves works properly
         move_bird();
-        move_enemy(xspeed,yspeed);
         clear();
 
-//Do stuff with IFS here, timeout, period, scoreperiod, timeout==period move enemy and reset the timeout stuff like that
-       // if(IFS(0))
-		   // https://i.gyazo.com/1f8f50bea099f1b70eef51e3c39463a7.png <---- IFS0 BITS
-
-		//////////////GRAVITY//////////////////
+// https://i.gyazo.com/1f8f50bea099f1b70eef51e3c39463a7.png <---- IFS0 BITS
+//////////////GRAVITY//////////////////
 		if (IFS(0) & 0x1000) {
-			if (ypos >= 0) {
+            if (ypos >= 0) {
             ypos += 0.25;
 			}
 		IFSCLR(0) = 0x1000; //reset
 		}
 
-		////////////  <--- PIPE  ////////////
+
+////////////  PIPE MOVEMENT  ////////////
 		if (IFS(0) & 0x10000) {
-			if(xposp >= 0) {
+            speriod++;
+            if(xposp > 0) {
 				xposp -= 0.25;
 			}
 		IFSCLR(0) = 0x10000; //reset
 		}
 
-        draw_enemy(32,2);
-        //add_enemy (0,32,2);
-		draw_pipe();
+//the speriod is associated with the
+        if(speriod == 100) {
+            score++;
+            PORTE += 1;
+            speriod = 0;
+        }
+
+////////////  ENEMY MOVEMENT ////////////
+		if (IFS(0) & 0x100) {
+            if(xpose > 0 && ypose < (31-ENEMYH)) {
+                xpose -= 0.25;
+                ypose += 0.25;
+            }
+		IFSCLR(0) = 0x10000; //reset
+		}
+        
+        draw_enemy();
+        draw_pipe();
         draw_bird();
         render(screen);
-        playing = !collisions(); //This is the way to stop the playing
+    //    playing = !collisions(); //This is the way to stop the playing
     }
 }
 
@@ -375,6 +389,11 @@ int playing = 1; //boolean to known when you are playing or not
 
 //game over screen, here is where you check if you should update your high score, display the player their score, and allow the player to go back to the menu
 void game_over() {
+    //checks if the score should replace the third place
+    if(score < score2 && score > score3){
+      score3 = score;
+    }
+
     //checks if the score should replace the second place
     if(score < score1 && score > score2) {
         score2 = score;
@@ -382,11 +401,12 @@ void game_over() {
 
     //checks if the score should replace the highest score
     if(score > score1) {
+        score3 = score2;
         score2 = score1;
         score1 = score;
     }
 
-    int gameover = 1; // boolean for game over
+    int gameover_screen = 1; // boolean for game over
 
     //reset the position of the bird to initial position
     xpos = 0;
@@ -395,25 +415,26 @@ void game_over() {
 //what you would see on your screen
     display_string(0, "WASTED!");
     display_string(1, "score:");
-//    display_string(2, ); //find a way to display the score here
+    display_string(2, itoaconv(score));
     display_string(3, "BTN1 menu");
     display_update();
 
 //goes back to the menu if btn 1 is pressed
-    while(gameover) {
+    while(gameover_screen) {
         if(getbtn(1)) {
-            gameover = 0;
+            gameover_screen = 0;
         }
     }
 }
 
 void high_score() {
-  //check what to do with the text buffer
+//you need to clear the text buffer so you dont get stuff from the menu screen
+  clear_text();
+  display_update();
 
-
-  //  display_string(0, );
-//    display_string(2, ); //find a way to put the highest score here
-//    display_string(1, ); //find a way to put the second highest score here
+    display_string(0, itoaconv(score1));
+    display_string(1, itoaconv(score2));
+    display_string(2, itoaconv(score3));
     display_string(3, "Menu: BTN1");
     display_update();
 
@@ -423,10 +444,36 @@ void high_score() {
         }
     }
     //sets the variable that checks the high score from the menu to zero
-    check_high_score = 0;
+    high_score_screen = 0;
 }
 
-
+//choose the difficulty of the game
+void choose_difficulty() {
+    clear_text();
+    display_update();
+    
+    display_string(0,"Difficulty");
+    display_string(1,"SW3: Easy");
+    display_string(2,"SW2: Standard");
+    display_string(3,"SW1: Hard");
+    display_update();
+    
+    while(1) {
+        if(getsw(3)) {
+            difficulty = 100;
+            break;
+        }
+        if(getsw(2)) {
+            difficulty = 1000;
+            break;
+        }
+        if(getsw(1)) {
+             difficulty = 10000;
+            break;
+        }
+    }
+    
+}
 
 //this is the menu, when the program starts the first thing you see it's this
 void menu() {
@@ -435,8 +482,8 @@ void menu() {
 //what you see on the display
     display_string(0, "****************");
     display_string(1, "---FLAPPYBIRD---");
-    display_string(2, "SWITCH4: Start");
-    display_string(3, "BTN1: High Score");
+    display_string(2, "SWITCH4 Play!");
+    display_string(3, "BTN1 High Scores");
     display_update();
 
 //stops running the menu
@@ -447,7 +494,7 @@ void menu() {
 //stops running the menu and sets boolean to check high score to true
         if(getbtn(1)) {
             run_menu = 0;
-            check_high_score = 1;
+            high_score_screen = 1;
         }
     }
 }
@@ -459,9 +506,12 @@ void run() {
     while (1) {
         menu();
 //Once you pressed a btn you turn off the menu, if you pressed btn 4 then you also set check high score to true if that is the case, then you will jump to the high score
-        if(check_high_score) {
+        if(high_score_screen) {
             high_score();
         }
+        choose_difficulty();
+        configtimer2();
+        configtimer4();
 //You don't need to turn on a variable to play the game because you have this as your default
         play();
 //Once you collide with something you will go to the game over screen

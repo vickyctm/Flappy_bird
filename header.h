@@ -6,6 +6,7 @@ Written by Victoria Torres and Manuel Rydholm
 //all configurations needed
 void configbtn(void);
 void configscreen(void);
+volatile int difficulty;
 void configtimer2(void);
 void configtimer3(void);
 void configtimer4(void);
@@ -21,6 +22,7 @@ extern char textbuffer[4][16];
 
 //all game related functions
 void addPixel(int x, int y, uint8_t *array);
+void clear_text(void);
 void clear();
 void play(void);
 void run(void);
