@@ -155,7 +155,7 @@ int randomSetterPipe() {
 }
 
 int randomSetterEnemy() {
-  if (ypose == 31) {
+  if (ypose == 0) {
     randomSetterVarEnemy = finalRandomSeed;
   }
   return randomSetterVarEnemy;
@@ -183,16 +183,15 @@ void draw_pipe() {
 void draw_enemy() {
   int localtemp;
 //checks if the enemy has touched the end of the screen and resets it to the initial position
-  if (ypose == (31-ENEMYH)) {
-    random_seed_generator();
-    localtemp = randomSetterPipe();
-    //xpose = 127;
-    xpose = 65 + (5 * localtemp);
-    ypose = 1;
+  if (ypose == (31)) { //(31-ENEMYH)) {
+    ypose = 0;
+    // random_seed_generator();
+    // localtemp = randomSetterPipe();
+    // xpose = 65 + (5 * localtemp);
   }
     int i,j;
     random_seed_generator();
-    localtemp = randomSetterPipe();
+    localtemp = randomSetterEnemy();
     xpose = 65 + (5 * localtemp);
     for(i = 0; i < ENEMYH; i++) {
         for(j = 0; j < ENEMYW; j++) {
@@ -370,13 +369,13 @@ int playing = 1; //boolean to known when you are playing or not
 
 ////////////  ENEMY MOVEMENT ////////////
 		if (IFS(0) & 0x100) {
-            if(xpose > 0 && ypose < (31-ENEMYH)) {
+            if(xpose > 0 && ypose < (31)) { //ypose < (31-ENEMYH))
                 xpose -= 0.25;
                 ypose += 0.25;
             }
-		IFSCLR(0) = 0x10000; //reset
+		IFSCLR(0) = 0x10000; //reset     <------------ OJO 10000?
 		}
-        
+
         draw_enemy();
         draw_pipe();
         draw_bird();
@@ -451,13 +450,13 @@ void high_score() {
 void choose_difficulty() {
     clear_text();
     display_update();
-    
+
     display_string(0,"Difficulty");
     display_string(1,"SW3: Easy");
-    display_string(2,"SW2: Standard");
+    display_string(2,"SW2: Medium");
     display_string(3,"SW1: Hard");
     display_update();
-    
+
     while(1) {
         if(getsw(3)) {
             difficulty = 100;
@@ -472,7 +471,7 @@ void choose_difficulty() {
             break;
         }
     }
-    
+
 }
 
 //this is the menu, when the program starts the first thing you see it's this
