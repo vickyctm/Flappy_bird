@@ -20,17 +20,22 @@ Written by Victoria Torres and Manuel Rydholm.
 
 //variables needed for random function
 int randomSeed;
-int finalRandomSeed = 0;
-int randomSetterVarPipe;
+int finalRandomSeedOne = 0;
+int finalRandomSeedTwo = 0;
+int randomSetterVarPipeOne;
+int randomSetterVarPipeTwo;
 int randomSetterVarEnemy;
 //int randomSetterVar;
 
 //Coordinates for the bird. Global variables
-double xpos = 0; //this is the left-most point of the bird
-double ypos = 2; //this is the top-most point of the bird
+double xpos = 10; //this is the left-most point of the bird
+double ypos = 8; //this is the top-most point of the bird
 
-double xposp = 100; // same as above^ but for pipe
-double yposp = 20;
+double xpospone = 120; // same as above^ but for pipe
+double ypospone = 20;
+
+double xposptwo = 200; // same as above^ but for pipe
+double yposptwo = 20;
 
 double xpose=120; //same as above^bur for enemy
 double ypose=1;
@@ -43,9 +48,14 @@ int score = 0; //score counter
 int score1 = 0;
 int score2 = 0;
 int score3 = 0;
+//use to save the names of high scores
+char* name1;
+char* name2;
+char* name3;
 
 //boolean variable that would be use to acces highest scores from the menu
 int high_score_screen = 0;
+int run_add_name = 0;
 
 //Converts x and y coordinates so it easier to draw on the screen
 void add_pixel(int x, int y, uint8_t *array){
@@ -126,8 +136,8 @@ void move_bird () {
 }
 
 //THIS FUNCTION INCLUDES CODE FROM https://www.sanfoundry.com/c-program-binary-number-into-decimal/
-// WHICH IS USED TO CONVERT A BINARY NUMBER OBTAINED FROM randGenerator() TO DECIMAL AND STORE IT IN finalRandomSeed
-void random_seed_generator() {
+// WHICH IS USED TO CONVERT A BINARY NUMBER OBTAINED FROM randGenerator() TO DECIMAL AND STORE IT IN finalRandomSeedOne
+void random_seed_generator_one() {
     int decimal_randomSeed = 0;
     int base = 1;
     int rem;
@@ -141,39 +151,84 @@ void random_seed_generator() {
           base = base * 2;
         }
 
-        finalRandomSeed = (decimal_randomSeed % 10); //value from 0 to 9
+        finalRandomSeedOne = (decimal_randomSeed % 10); //value from 0 to 9
       }
 
+void random_seed_generator_two() {
+      int decimal_randomSeed = 0;
+      int base = 1;
+      int rem;
+      int seed = randGenerator() * 2;
 
-//Obtains the value from random_seed_generator and stores it to feed it to draw_pipe once
+      while (seed > 0)
+        {
+            rem = seed % 10;
+            decimal_randomSeed = decimal_randomSeed + rem * base;
+            seed = seed / 10 ;
+            base = base * 2;
+          }
+
+          finalRandomSeedTwo = (decimal_randomSeed % 10); //value from 0 to 9
+        }
+
+
+//Obtains the value from random_seed_generator_one and stores it to feed it to draw_pipe once
 //the pipe has left the screen. This results in a randomization of the height of the pipe
-int randomSetterPipe() {
-  if (xposp == 127) {
-    randomSetterVarPipe = finalRandomSeed;
+int randomSetterPipeOne() {
+  if (xpospone == 127) {
+    randomSetterVarPipeOne = finalRandomSeedOne;
   }
-  return randomSetterVarPipe;
+  return randomSetterVarPipeOne;
+}
+
+int randomSetterPipeTwo() {
+  if (xposptwo == 127) {
+    randomSetterVarPipeTwo = finalRandomSeedTwo;
+  }
+  return randomSetterVarPipeTwo;
 }
 
 int randomSetterEnemy() {
   if (ypose == 0) {
-    randomSetterVarEnemy = finalRandomSeed;
+    randomSetterVarEnemy = finalRandomSeedOne;
   }
   return randomSetterVarEnemy;
 }
 
-void draw_pipe() {
-  int localtemp;
-  if (xposp == 0) {
-    xposp = 127;
-    //random_seed_generator();
+void draw_pipe_one() {
+  int localtemp = 0;
+  if (xpospone == 0) {
+    xpospone = 127;
+    //random_seed_generator_one();
   }
    int i,j;
-   random_seed_generator();
-   localtemp = randomSetterPipe();
-    yposp = ( (2 * localtemp) + 12 ); //height at which pipe gets drawn
-    for (i=0; i < (31-yposp); i++) {
+   random_seed_generator_one();
+   localtemp = randomSetterPipeOne();
+   if (localtemp != 0) {
+    ypospone = ( (2 * localtemp) + 8 ); //height at which pipe gets drawn
+    }
+    for (i=0; i < (31-ypospone); i++) {
       for (j = 0; j < PIPEW; j++) {
-          add_pixel((int) xposp + j,(int) yposp + i, screen);
+          add_pixel((int) xpospone + j,(int) ypospone + i, screen);
+    }
+  }
+}
+
+void draw_pipe_two() {
+  int localtemp = 0;
+  if (xposptwo == 0) {
+    xposptwo = 127;
+    //random_seed_generator_one();
+  }
+   int i,j;
+   random_seed_generator_two();
+   localtemp = randomSetterPipeTwo();
+   if (localtemp != 0) {
+    yposptwo = ( (2 * localtemp) + 8 ); //height at which pipe gets drawn
+    }
+    for (i=0; i < (31-yposptwo); i++) {
+      for (j = 0; j < PIPEW; j++) {
+          add_pixel((int) xposptwo + j,(int) yposptwo + i, screen);
     }
   }
 }
@@ -185,14 +240,17 @@ void draw_enemy() {
 //checks if the enemy has touched the end of the screen and resets it to the initial position
   if (ypose == (31)) { //(31-ENEMYH)) {
     ypose = 0;
-    // random_seed_generator();
-    // localtemp = randomSetterPipe();
+    // random_seed_generator_one();
+    // localtemp = randomSetterPipeOne();
     // xpose = 65 + (5 * localtemp);
-  }
-    int i,j;
-    random_seed_generator();
+    random_seed_generator_one();
     localtemp = randomSetterEnemy();
     xpose = 65 + (5 * localtemp);
+  }
+    int i,j;
+    // random_seed_generator_one();
+    // localtemp = randomSetterEnemy();
+    // xpose = 65 + (5 * localtemp);
     for(i = 0; i < ENEMYH; i++) {
         for(j = 0; j < ENEMYW; j++) {
             add_pixel(xpose + j, ypose + i, screen);
@@ -252,9 +310,13 @@ int collisions() {
     int bird_right = xpos + BIRDW;
 
 //borders for the pipes
-    int pipe_top = yposp;
-    int pipe_left = xposp;
-    int pipe_right = xposp + PIPEW;
+    int pipe_top_one = ypospone;
+    int pipe_left_one = xpospone;
+    int pipe_right_one = xpospone + PIPEW;
+
+    int pipe_top_two = yposptwo;
+    int pipe_left_two = xposptwo;
+    int pipe_right_two = xposptwo + PIPEW;
 
 //borders for the enemies
     int enemy_top = ypose;
@@ -263,26 +325,36 @@ int collisions() {
     int enemy_right = xpose + ENEMYW;
 
 //collisions with the screen borders
-    if ( bird_top == screen_top ||
-         bird_bottom == screen_bottom ||
-         bird_left == screen_left) {
-      return 1;
-    }
+    // if ( bird_top == screen_top ||
+    //      bird_bottom == screen_bottom ||
+    //      bird_left == screen_left) {
+    //   return 1;
+    // }
 
 //collisions with the pipes. no bird top needed.
-    else if ( bird_bottom == pipe_top ||
-              bird_right == pipe_left ||
-              bird_left == pipe_right) {
-      return 1;
-    }
+    //  if ( bird_bottom == pipe_top_one || //+else
+    //           bird_right == pipe_left_one ||
+    //           bird_left == pipe_right_one) {
+    //   return 1;
+    // }
+    if ( ((bird_bottom == pipe_top_one) && ((bird_right >= pipe_left_one) && (bird_left <= pipe_right_one )) ) ||
+             ( (bird_right == pipe_left_one) && (bird_bottom >= pipe_top_one) ) ||
+             ( (bird_left == pipe_right_one) && ( bird_bottom >= pipe_top_one ) ) ) {
+     return 1;
+   }
 
+   if ( ((bird_bottom == pipe_top_two) && ((bird_right >= pipe_left_two) && (bird_left <= pipe_right_two )) ) ||
+            ( (bird_right == pipe_left_two) && (bird_bottom >= pipe_top_two) ) ||
+            ( (bird_left == pipe_right_two) && ( bird_bottom >= pipe_top_two ) ) ) {
+    return 1;
+  }
 //collisions with the enemies
-    else if ( bird_top == enemy_bottom ||
-              bird_bottom == enemy_top ||
-              bird_right == enemy_left ||
-              bird_left == enemy_right) {
-      return 1;
-    }
+    // else if ( bird_top == enemy_bottom ||
+    //           bird_bottom == enemy_top ||
+    //           bird_right == enemy_left ||
+    //           bird_left == enemy_right) {
+    //   return 1;
+    // }
 
  else
     return 0;
@@ -327,6 +399,58 @@ char* itoaconv( int num )
   return( &itoa_buffer[ i + 1 ] );
 }
 
+//gives the length of a string so we can use it to put two strings together
+// int string_length(char *length) {
+//     int i;
+//     for(i = 0; length[i] != '\0'; i++);
+//     return i;
+//  }
+//
+// //puts two strings together
+// char * stringconcat(char *str1, char *str2) {
+//     int length1 = string_length(str1);
+//     int length2 = string_length(str2);
+//     int my_length = length1 + length2;
+//     char final[my_length];
+//
+//     int i;
+//     for(i = 0; i < length1; i++) {
+//         final[i] = str1[i];
+//     }
+//     for(i = 0; i < length2; i++) {
+//         final[i + length1] = str2[i];
+//     }
+//     return final;
+// }
+
+//creates a name to save a score
+char* score_name(){
+    int i;
+    char* characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //array that contains all letters
+    char* my_name; //creates an empty array in which the score name will be written
+    clear_text();
+    display_update();
+    display_string(0,characters); //displays the first letter (A)
+    display_update();
+
+    for(i = 0; i < 3; i++){
+        if(getbtn(4)) {
+            if(characters != '\0') {
+                characters++;
+                display_string(0,characters);
+                display_update();
+            }
+        }
+        if(getbtn(3)) {
+            my_name = characters;
+            my_name++;
+            characters = "A";
+        }
+    }
+    run_add_name = 0;
+    return my_name;
+}
+
 
 
 //Game's main loop
@@ -351,12 +475,17 @@ int playing = 1; //boolean to known when you are playing or not
 		}
 
 
-////////////  PIPE MOVEMENT  ////////////
+////////////PIPE MOVEMENT////////////
 		if (IFS(0) & 0x10000) {
             speriod++;
-            if(xposp > 0) {
-				xposp -= 0.25;
-			}
+            if(xpospone > 0) {
+				          xpospone -= 0.25;
+			       }
+
+            if(xposptwo > 0) {
+                xposptwo -= 0.25;
+             }
+
 		IFSCLR(0) = 0x10000; //reset
 		}
 
@@ -367,20 +496,21 @@ int playing = 1; //boolean to known when you are playing or not
             speriod = 0;
         }
 
-////////////  ENEMY MOVEMENT ////////////
+////////////ENEMY MOVEMENT////////////
 		if (IFS(0) & 0x100) {
             if(xpose > 0 && ypose < (31)) { //ypose < (31-ENEMYH))
                 xpose -= 0.25;
                 ypose += 0.25;
             }
-		IFSCLR(0) = 0x10000; //reset     <------------ OJO 10000?
+		IFSCLR(0) = 0x100; //reset     <------------ OJO 10000?
 		}
 
         draw_enemy();
-        draw_pipe();
+        draw_pipe_one();
+        draw_pipe_two();
         draw_bird();
         render(screen);
-    //    playing = !collisions(); //This is the way to stop the playing
+      playing = !collisions(); //This is the way to stop the playing
     }
 }
 
@@ -391,11 +521,14 @@ void game_over() {
     //checks if the score should replace the third place
     if(score < score2 && score > score3){
       score3 = score;
+      run_add_name = 1;
+      name3 = score_name();
     }
 
     //checks if the score should replace the second place
     if(score < score1 && score > score2) {
         score2 = score;
+        name2 = score_name();
     }
 
     //checks if the score should replace the highest score
@@ -403,6 +536,7 @@ void game_over() {
         score3 = score2;
         score2 = score1;
         score1 = score;
+        name1 = score_name();
     }
 
     int gameover_screen = 1; // boolean for game over
@@ -431,9 +565,14 @@ void high_score() {
   clear_text();
   display_update();
 
-    display_string(0, itoaconv(score1));
-    display_string(1, itoaconv(score2));
-    display_string(2, itoaconv(score3));
+  // char *score_string = itoaconv(score1);
+  // score_name();
+  // char *line = stringconcat(my_name, itoaconv(score));
+
+    display_string(0, name1);
+    display_string(1, name2);
+    // display_string(2, itoaconv(score3));
+     display_string(2, name3);
     display_string(3, "Menu: BTN1");
     display_update();
 
@@ -443,7 +582,7 @@ void high_score() {
         }
     }
     //sets the variable that checks the high score from the menu to zero
-    high_score_screen = 0;
+     high_score_screen = 0;
 }
 
 //choose the difficulty of the game
@@ -453,7 +592,7 @@ void choose_difficulty() {
 
     display_string(0,"Difficulty");
     display_string(1,"SW3: Easy");
-    display_string(2,"SW2: Medium");
+    display_string(2,"SW2: Normal");
     display_string(3,"SW1: Hard");
     display_update();
 
@@ -468,7 +607,7 @@ void choose_difficulty() {
         }
         if(getsw(1)) {
              difficulty = 10000;
-            break;
+             break;
         }
     }
 
@@ -491,9 +630,9 @@ void menu() {
             run_menu = 0;
         }
 //stops running the menu and sets boolean to check high score to true
-        if(getbtn(1)) {
-            run_menu = 0;
-            high_score_screen = 1;
+        if(getbtn(1)){
+          high_score_screen = 1;
+           run_menu = 0;
         }
     }
 }
@@ -505,9 +644,10 @@ void run() {
     while (1) {
         menu();
 //Once you pressed a btn you turn off the menu, if you pressed btn 4 then you also set check high score to true if that is the case, then you will jump to the high score
-        if(high_score_screen) {
-            high_score();
-        }
+        // if(high_score_screen == 1) {
+        //     high_score();
+        // }
+        high_score();
         choose_difficulty();
         configtimer2();
         configtimer4();
