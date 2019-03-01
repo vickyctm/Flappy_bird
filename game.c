@@ -57,6 +57,7 @@ char* name3;
 int high_score_screen = 0;
 int run_add_name = 0;
 
+
 //Converts x and y coordinates so it easier to draw on the screen
 void add_pixel(int x, int y, uint8_t *array){
 //This prevents the addition of pixels out of bounds
@@ -75,10 +76,31 @@ void draw_bird() {
     int i,j;
     for(i = 0; i < BIRDH; i++) {
         for(j = 0; j < BIRDW; j++) {
-            add_pixel((int) xpos + j,(int) ypos + i, screen);
+              if (!((BIRDW - j == 7) && (BIRDH - i == 4) ||
+                  (BIRDW - j == 6) && (BIRDH - i == 4) ||
+                  (BIRDW - j == 2) && (BIRDH - i == 4) ||
+                  (BIRDW - j == 1) && (BIRDH - i == 4) ||
+
+                  (BIRDW - j == 5) && (BIRDH - i == 3) ||
+                  (BIRDW - j == 4) && (BIRDH - i == 3) ||
+                  (BIRDW - j == 2) && (BIRDH - i == 3) ||
+                  (BIRDW - j == 1) && (BIRDH - i == 3) ||
+
+                  (BIRDW - j == 4) && (BIRDH - i == 2) ||
+
+                  (BIRDW - j == 7) && (BIRDH - i == 1) ||
+                  (BIRDW - j == 6) && (BIRDH - i == 1) ||
+                  (BIRDW - j == 2) && (BIRDH - i == 1) ||
+                  (BIRDW - j == 1) && (BIRDH - i == 1)
+                )) {
+
+
+                add_pixel((int) xpos + j,(int) ypos + i, screen);
+                }
+              }
         }
     }
-}
+
 
 
 //Checks which button was pressed: for movement of bird, and navegation through the menus
@@ -325,18 +347,13 @@ int collisions() {
     int enemy_right = xpose + ENEMYW;
 
 //collisions with the screen borders
-    // if ( bird_top == screen_top ||
-    //      bird_bottom == screen_bottom ||
-    //      bird_left == screen_left) {
-    //   return 1;
-    // }
+    if ( bird_top == screen_top ||
+         bird_bottom == screen_bottom ||
+         bird_left == screen_left) {
+      return 1;
+    }
 
 //collisions with the pipes. no bird top needed.
-    //  if ( bird_bottom == pipe_top_one || //+else
-    //           bird_right == pipe_left_one ||
-    //           bird_left == pipe_right_one) {
-    //   return 1;
-    // }
     if ( ((bird_bottom == pipe_top_one) && ((bird_right >= pipe_left_one) && (bird_left <= pipe_right_one )) ) ||
              ( (bird_right == pipe_left_one) && (bird_bottom >= pipe_top_one) ) ||
              ( (bird_left == pipe_right_one) && ( bird_bottom >= pipe_top_one ) ) ) {
@@ -348,13 +365,13 @@ int collisions() {
             ( (bird_left == pipe_right_two) && ( bird_bottom >= pipe_top_two ) ) ) {
     return 1;
   }
-//collisions with the enemies
-    // else if ( bird_top == enemy_bottom ||
-    //           bird_bottom == enemy_top ||
-    //           bird_right == enemy_left ||
-    //           bird_left == enemy_right) {
-    //   return 1;
-    // }
+
+  if ( ((bird_bottom == enemy_top) && ((bird_right >= enemy_left) && (bird_left <= enemy_right )) ) ||
+           ((bird_top == enemy_bottom) && ((bird_right >= enemy_left) && (bird_left <= enemy_right ))) ||
+           ( (bird_right == enemy_left) && (bird_bottom >= enemy_top) ) ||
+           ( (bird_left == enemy_right) && ( bird_bottom >= enemy_top ) ) ) {
+   return 1;
+ }
 
  else
     return 0;
@@ -400,55 +417,95 @@ char* itoaconv( int num )
 }
 
 //gives the length of a string so we can use it to put two strings together
-// int string_length(char *length) {
-//     int i;
-//     for(i = 0; length[i] != '\0'; i++);
-//     return i;
-//  }
-//
-// //puts two strings together
-// char * stringconcat(char *str1, char *str2) {
-//     int length1 = string_length(str1);
-//     int length2 = string_length(str2);
-//     int my_length = length1 + length2;
-//     char final[my_length];
-//
-//     int i;
-//     for(i = 0; i < length1; i++) {
-//         final[i] = str1[i];
-//     }
-//     for(i = 0; i < length2; i++) {
-//         final[i + length1] = str2[i];
-//     }
-//     return final;
-// }
+int string_length(char *length) {
+    int counter;
+    for(counter = 0; length[counter] != '\0'; counter++){
+        return counter;
+    }
+ }
+
+//puts two strings together using string length to get the size of the strings
+char * combine_strings(char *str1, char *str2) {
+    int length1 = string_length(str1);
+    int length2 = string_length(str2);
+    int length = length1 + length2;
+
+    char combination[length];
+    int i;
+    for(i = 0; i < length1; i++) {
+        combination[i] = str1[i];
+    }
+    for(i = 0; i < length2; i++) {
+        combination[i + length1] = str2[i];
+    }
+    char* combined_string= combination;
+    return combined_string;
+}
 
 //creates a name to save a score
 char* score_name(){
-    int i;
-    char* characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //array that contains all letters
-    char* my_name; //creates an empty array in which the score name will be written
     clear_text();
     display_update();
-    display_string(0,characters); //displays the first letter (A)
-    display_update();
 
-    for(i = 0; i < 3; i++){
-        if(getbtn(4)) {
-            if(characters != '\0') {
-                characters++;
-                display_string(0,characters);
-                display_update();
-            }
+        char* characters= "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        int i=0;
+        int j=0;
+
+        char name[4]= {'\0'};
+        //char* name = ""
+        char current [2]= {'\0'};
+        //char* current = ""
+        // current [0] = font[];
+
+
+        display_string(0,current);
+        display_string(1,"ur name");
+        display_string(2,name);
+        display_string(3,"SW4: done");
+        display_update();
+
+    while(1) {
+        if(getbtn(1)) {
+          delay (500);
+            clear_text();
+            display_update();
+            characters++;
+            if (*characters == 'Z') {
+                characters = characters - 26;
+              }
+              //current[0] = characters[i];
+              current[0] = *characters;
+              display_string(0,current);
+              display_string(1,"ur name");
+              display_string(2,name);
+              display_string(3,"SW4: done");
+              display_update();
         }
-        if(getbtn(3)) {
-            my_name = characters;
-            my_name++;
-            characters = "A";
+        if(getbtn(3) ) {
+          delay(650);
+          clear_text();
+          display_update();
+          name[j] = current[0];
+          j++;
+          if (j == 4) {
+            j = 0;
+          }
+
+          display_string(0,current);
+          display_string(1,"ur name");
+          display_string(2,name);
+          display_string(3,"SW4: done");
+          display_string(2,name);
+          display_update();
+
+        }
+        if(getsw(4)){
+          break;
         }
     }
-    run_add_name = 0;
-    return my_name;
+    char* my_name = name;
+    return ( &my_name[0] );
+     // return (char*) *name;
 }
 
 
@@ -514,14 +571,10 @@ int playing = 1; //boolean to known when you are playing or not
     }
 }
 
-
-
-//game over screen, here is where you check if you should update your high score, display the player their score, and allow the player to go back to the menu
-void game_over() {
+void check_scores() {
     //checks if the score should replace the third place
     if(score < score2 && score > score3){
       score3 = score;
-      run_add_name = 1;
       name3 = score_name();
     }
 
@@ -539,41 +592,56 @@ void game_over() {
         name1 = score_name();
     }
 
-    int gameover_screen = 1; // boolean for game over
-
-    //reset the position of the bird to initial position
-    xpos = 0;
-    ypos = 0;
-
-//what you would see on your screen
-    display_string(0, "WASTED!");
-    display_string(1, "score:");
-    display_string(2, itoaconv(score));
-    display_string(3, "BTN1 menu");
-    display_update();
-
-//goes back to the menu if btn 1 is pressed
-    while(gameover_screen) {
-        if(getbtn(1)) {
-            gameover_screen = 0;
-        }
-    }
 }
 
+//game over screen, here is where you check if you should update your high score, display the player their score, and allow the player to go back to the menu
+void game_over() {
+//reset the positions to initial position
+            xpos = 10;
+            ypos = 8;
+            xpospone = 120;
+            ypospone = 20;
+            xposptwo = 200;
+            yposptwo = 20;
+
+check_scores();
+
+int gameover_screen = 1; // boolean for game over
+  //what you would see on your screen
+      display_string(0, "WASTED!");
+      display_string(1, "ur score is:");
+      display_string(2, itoaconv(score));
+      display_string(3, "BTN4 menu");
+      display_update();
+
+//goes back to the menu if btn 1 is pressed
+          while(gameover_screen) {
+              if(getbtn(4)) {
+                  gameover_screen = 0;
+              }
+          }
+}
+
+
 void high_score() {
+  if (high_score_screen = 0) {
+    return;
+  }
 //you need to clear the text buffer so you dont get stuff from the menu screen
   clear_text();
   display_update();
 
-  // char *score_string = itoaconv(score1);
-  // score_name();
-  // char *line = stringconcat(my_name, itoaconv(score));
+// char* s1;
+// char* s2 = '\0';
+// char* s3 = itoconv(score3);
+// // s1 = itoconv(score1);
+// s2 = itoconv(score2);
 
     display_string(0, name1);
+    // display_string(1, combine_strings(name2, s2));
     display_string(1, name2);
-    // display_string(2, itoaconv(score3));
-     display_string(2, name3);
-    display_string(3, "Menu: BTN1");
+    display_string(2, name3);
+    display_string(3, "Play: BTN1");
     display_update();
 
     while(1) {
@@ -602,11 +670,11 @@ void choose_difficulty() {
             break;
         }
         if(getsw(2)) {
-            difficulty = 1000;
+            difficulty = 500;
             break;
         }
         if(getsw(1)) {
-             difficulty = 10000;
+             difficulty = 1000;
              break;
         }
     }
@@ -615,38 +683,32 @@ void choose_difficulty() {
 
 //this is the menu, when the program starts the first thing you see it's this
 void menu() {
-    int run_menu = 1; //boolean to know when to run menu and when to stop
+     int run_menu = 1; //boolean to know when to run menu and when to stop
 
 //what you see on the display
     display_string(0, "****************");
     display_string(1, "---FLAPPYBIRD---");
-    display_string(2, "SWITCH4 Play!");
-    display_string(3, "BTN1 High Scores");
+    display_string(2, "SW4 High Scores");
+    display_string(3, "BTN1 Play!");
     display_update();
 
 //stops running the menu
     while(run_menu) {
-         if(getsw(4)) {
+         if(getbtn(1)) {
             run_menu = 0;
         }
 //stops running the menu and sets boolean to check high score to true
-        if(getbtn(1)){
-          high_score_screen = 1;
+        if(getsw(4)){
+           high_score_screen = 1;
            run_menu = 0;
         }
     }
 }
 
-
-
 //Infinite loop that switches between the menu, high score, game, and game over
 void run() {
     while (1) {
         menu();
-//Once you pressed a btn you turn off the menu, if you pressed btn 4 then you also set check high score to true if that is the case, then you will jump to the high score
-        // if(high_score_screen == 1) {
-        //     high_score();
-        // }
         high_score();
         choose_difficulty();
         configtimer2();

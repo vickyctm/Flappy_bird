@@ -57,7 +57,7 @@ void configtimer2() {
 	TMR2 = 0;
 	T2CON = 0x70; // 111 in hex (1:256 pre-scaling) biggest scale to avoid large number to fit in register
 	T2CONSET = 0x8000; //Turning timer ON by setting bit 15 to 1
-	PR2 = ((80000000/256) / (10 * difficulty)); //Set the period
+	PR2 = ((80000000/256) / ((difficulty/10)+40)); //Set the period
 
 }
 

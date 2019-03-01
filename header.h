@@ -17,6 +17,9 @@ uint8_t spi_send_recv(uint8_t data);
 void display_init(void);
 void display_update(void);
 void display_string(int line, char *s);
+
+void display_characters(int line, char *s);
+
 extern const uint8_t const font[128*8];
 extern char textbuffer[4][16];
 

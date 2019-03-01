@@ -106,6 +106,21 @@ void display_string(int line, char *s) {
 			textbuffer[line][i] = ' ';
 }
 
+//needed in order to access the array of characters to write a name
+void display_characters(int line, char *s) {
+	static int i=0;
+	if(line < 0 || line >= 4)
+		return;
+	if(!s)
+		return;
+
+		if(*s) {
+			textbuffer[line][i] = *s;
+			s++;
+		} else
+			textbuffer[line][i] = ' ';
+}
+
 void clear_text() {
     int i, j;
 
@@ -113,7 +128,7 @@ void clear_text() {
   	     for(j = 0; j < 16; j++){
 		   textbuffer[i][j] = 0;
 	       }
-    }	
+    }
 }
 
 

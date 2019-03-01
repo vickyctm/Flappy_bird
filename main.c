@@ -14,7 +14,5 @@ int main(void) {
 	display_init();
 	render(screen);
 	PORTE = 1;
-    run();
-
-
+	run();
 }
