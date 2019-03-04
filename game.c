@@ -25,7 +25,6 @@ int finalRandomSeedTwo = 0;
 int randomSetterVarPipeOne;
 int randomSetterVarPipeTwo;
 int randomSetterVarEnemy;
-//int randomSetterVar;
 
 //Coordinates for the bird. Global variables
 double xpos = 10; //this is the left-most point of the bird
@@ -48,15 +47,13 @@ int score = 0; //score counter
 int score1 = 0;
 int score2 = 0;
 int score3 = 0;
-//use to save the names of high scores
+//used to save the names of high scores
 char* name1;
 char* name2;
 char* name3;
 
-//boolean variable that would be use to acces highest scores from the menu
+//boolean variable that would be used to acces highest scores from the menu
 int high_score_screen = 0;
-int run_add_name = 0;
-
 
 //Converts x and y coordinates so it easier to draw on the screen
 void add_pixel(int x, int y, uint8_t *array){
@@ -91,15 +88,13 @@ void draw_bird() {
                   (BIRDW - j == 7) && (BIRDH - i == 1) ||
                   (BIRDW - j == 6) && (BIRDH - i == 1) ||
                   (BIRDW - j == 2) && (BIRDH - i == 1) ||
-                  (BIRDW - j == 1) && (BIRDH - i == 1)
-                )) {
-
-
+                  (BIRDW - j == 1) && (BIRDH - i == 1)))
+                {
                 add_pixel((int) xpos + j,(int) ypos + i, screen);
                 }
-              }
         }
     }
+}
 
 
 
@@ -143,9 +138,6 @@ void move_bird () {
     }
     //to move the bird up
     if(getbtn(3)) {     //FIX SO THE BIRD DOESNT LEAVE THE SCREEN
-      //int randTemp = TMR4; //RANDOM SEED 0-9. Gets defined when user presses up btn
-      //  randomSeed = randTemp;
-      //randomSeed = TMR4;
         if(ypos >= 0)
             ypos -= 0.25;
     }
@@ -194,8 +186,8 @@ void random_seed_generator_two() {
         }
 
 
-//Obtains the value from random_seed_generator_one and stores it to feed it to draw_pipe once
-//the pipe has left the screen. This results in a randomization of the height of the pipe
+//Obtains the value from random_seed_generator_one/two and stores it to feed it to draw_pipe/draw_enemy once
+//the pipe/enemy has left the screen. This results in a randomization of the height of the pipe/spawn of the enemy
 int randomSetterPipeOne() {
   if (xpospone == 127) {
     randomSetterVarPipeOne = finalRandomSeedOne;
@@ -221,7 +213,6 @@ void draw_pipe_one() {
   int localtemp = 0;
   if (xpospone == 0) {
     xpospone = 127;
-    //random_seed_generator_one();
   }
    int i,j;
    random_seed_generator_one();
@@ -240,7 +231,6 @@ void draw_pipe_two() {
   int localtemp = 0;
   if (xposptwo == 0) {
     xposptwo = 127;
-    //random_seed_generator_one();
   }
    int i,j;
    random_seed_generator_two();
@@ -259,20 +249,13 @@ void draw_pipe_two() {
 
 void draw_enemy() {
   int localtemp;
-//checks if the enemy has touched the end of the screen and resets it to the initial position
-  if (ypose == (31)) { //(31-ENEMYH)) {
+  if (ypose == (31)) {
     ypose = 0;
-    // random_seed_generator_one();
-    // localtemp = randomSetterPipeOne();
-    // xpose = 65 + (5 * localtemp);
     random_seed_generator_one();
     localtemp = randomSetterEnemy();
     xpose = 65 + (5 * localtemp);
   }
     int i,j;
-    // random_seed_generator_one();
-    // localtemp = randomSetterEnemy();
-    // xpose = 65 + (5 * localtemp);
     for(i = 0; i < ENEMYH; i++) {
         for(j = 0; j < ENEMYW; j++) {
             add_pixel(xpose + j, ypose + i, screen);
@@ -452,12 +435,9 @@ char* score_name(){
         int j=0;
 
         char name[4]= {'\0'};
-        //char* name = ""
         char current [2]= {'\0'};
-        //char* current = ""
-        // current [0] = font[];
 
-
+        current[0] = *characters;
         display_string(0,current);
         display_string(1,"ur name");
         display_string(2,name);
@@ -473,7 +453,6 @@ char* score_name(){
             if (*characters == 'Z') {
                 characters = characters - 26;
               }
-              //current[0] = characters[i];
               current[0] = *characters;
               display_string(0,current);
               display_string(1,"ur name");
@@ -487,7 +466,7 @@ char* score_name(){
           display_update();
           name[j] = current[0];
           j++;
-          if (j == 4) {
+          if (j == 3) {
             j = 0;
           }
 
@@ -591,7 +570,6 @@ void check_scores() {
         score1 = score;
         name1 = score_name();
     }
-
 }
 
 //game over screen, here is where you check if you should update your high score, display the player their score, and allow the player to go back to the menu
@@ -624,7 +602,7 @@ int gameover_screen = 1; // boolean for game over
 
 
 void high_score() {
-  if (high_score_screen = 0) {
+  if (high_score_screen == 0) {
     return;
   }
 //you need to clear the text buffer so you dont get stuff from the menu screen
@@ -678,7 +656,6 @@ void choose_difficulty() {
              break;
         }
     }
-
 }
 
 //this is the menu, when the program starts the first thing you see it's this
