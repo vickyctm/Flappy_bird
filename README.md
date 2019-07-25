@@ -5,5 +5,4 @@ Pipes and enemies are randomly generated to give the user a varied experience.
 There is three different difficulties: easy, standard, and hard. The user has the ability to switch modes by using the 
 switches on the chipKIT.
 Higher difficulty increases the amount of points the user gains. 
-In addition to this, a top 3 leaderboard has been implemented and the user has the option to write a 3 character string to save
-his/her name.
+In addition to this, a top 3 leaderboard has been implemented and the user has the option to write a 3 character string to save his/her name.
