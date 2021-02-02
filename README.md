@@ -6,3 +6,5 @@ There is three different difficulties: easy, standard, and hard. The user has th
 switches on the chipKIT.
 Higher difficulty increases the amount of points the user gains. 
 In addition to this, a top 3 leaderboard has been implemented and the user has the option to write a 3 character string to save his/her name.
+
+![](flappybird.gif)
